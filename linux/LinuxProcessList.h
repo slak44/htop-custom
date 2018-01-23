@@ -33,7 +33,7 @@ typedef struct CPUData_ {
    unsigned long long int softIrqTime;
    unsigned long long int stealTime;
    unsigned long long int guestTime;
-   
+
    unsigned long long int totalPeriod;
    unsigned long long int userPeriod;
    unsigned long long int systemPeriod;
@@ -57,10 +57,10 @@ typedef struct TtyDriver_ {
 
 typedef struct LinuxProcessList_ {
    ProcessList super;
-   
+
    CPUData* cpus;
    TtyDriver* ttyDrivers;
-   
+
    #ifdef HAVE_DELAYACCT
    struct nl_sock *netlink_socket;
    int netlink_family;

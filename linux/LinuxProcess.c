@@ -115,7 +115,7 @@ typedef struct LinuxProcess_ {
    unsigned long long io_write_bytes;
    unsigned long long io_cancelled_write_bytes;
    unsigned long long io_rate_read_time;
-   unsigned long long io_rate_write_time;   
+   unsigned long long io_rate_write_time;
    double io_rate_read_bps;
    double io_rate_write_bps;
    #endif
@@ -192,17 +192,17 @@ ProcessFieldData Process_fields[] = {
    [CNSWAP] = { .name = "CNSWAP", .title = NULL, .description = NULL, .flags = 0, },
    [EXIT_SIGNAL] = { .name = "EXIT_SIGNAL", .title = NULL, .description = NULL, .flags = 0, },
    [PROCESSOR] = { .name = "PROCESSOR", .title = "CPU ", .description = "Id of the CPU the process last executed on", .flags = 0, },
-   [M_SIZE] = { .name = "M_SIZE", .title = " VIRT ", .description = "Total program size in virtual memory", .flags = 0, },
-   [M_RESIDENT] = { .name = "M_RESIDENT", .title = "  RES ", .description = "Resident set size, size of the text and data sections, plus stack usage", .flags = 0, },
-   [M_SHARE] = { .name = "M_SHARE", .title = "  SHR ", .description = "Size of the process's shared pages", .flags = 0, },
+   [M_SIZE] = { .name = "M_SIZE", .title = "   VIRT ", .description = "Total program size in virtual memory", .flags = 0, },
+   [M_RESIDENT] = { .name = "M_RESIDENT", .title = "    RES ", .description = "Resident set size, size of the text and data sections, plus stack usage", .flags = 0, },
+   [M_SHARE] = { .name = "M_SHARE", .title = "    SHR ", .description = "Size of the process's shared pages", .flags = 0, },
    [M_TRS] = { .name = "M_TRS", .title = " CODE ", .description = "Size of the text segment of the process", .flags = 0, },
    [M_DRS] = { .name = "M_DRS", .title = " DATA ", .description = "Size of the data segment plus stack usage of the process", .flags = 0, },
    [M_LRS] = { .name = "M_LRS", .title = " LIB ", .description = "The library size of the process", .flags = 0, },
    [M_DT] = { .name = "M_DT", .title = " DIRTY ", .description = "Size of the dirty pages of the process", .flags = 0, },
    [ST_UID] = { .name = "ST_UID", .title = " UID ", .description = "User ID of the process owner", .flags = 0, },
-   [PERCENT_CPU] = { .name = "PERCENT_CPU", .title = "CPU% ", .description = "Percentage of the CPU time the process used in the last sampling", .flags = 0, },
-   [PERCENT_MEM] = { .name = "PERCENT_MEM", .title = "MEM% ", .description = "Percentage of the memory the process is using, based on resident memory size", .flags = 0, },
-   [USER] = { .name = "USER", .title = "USER      ", .description = "Username of the process owner (or user ID if name cannot be determined)", .flags = 0, },
+   [PERCENT_CPU] = { .name = "PERCENT_CPU", .title = " CPU% ", .description = "Percentage of the CPU time the process used in the last sampling", .flags = 0, },
+   [PERCENT_MEM] = { .name = "PERCENT_MEM", .title = " MEM% ", .description = "Percentage of the memory the process is using, based on resident memory size", .flags = 0, },
+   [USER] = { .name = "USER", .title = "    USER ", .description = "Username of the process owner (or user ID if name cannot be determined)", .flags = 0, },
    [TIME] = { .name = "TIME", .title = "  TIME+  ", .description = "Total time the process has spent in user and system time", .flags = 0, },
    [NLWP] = { .name = "NLWP", .title = "NLWP ", .description = "Number of threads in the process", .flags = 0, },
    [TGID] = { .name = "TGID", .title = "   TGID ", .description = "Thread group ID (i.e. process ID)", .flags = 0, },
@@ -383,7 +383,7 @@ void LinuxProcess_writeField(Process* this, RichString* str, ProcessField field)
          attr = CRT_colors[PROCESS_HIGH_PRIORITY];
          xSnprintf(buffer, n, "R%1d ", IOPriority_data(lp->ioPriority));
       } else if (klass == IOPRIO_CLASS_IDLE) {
-         attr = CRT_colors[PROCESS_LOW_PRIORITY]; 
+         attr = CRT_colors[PROCESS_LOW_PRIORITY];
          xSnprintf(buffer, n, "id ");
       } else {
          xSnprintf(buffer, n, "?? ");

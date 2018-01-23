@@ -78,7 +78,7 @@ typedef struct MeterClass_ {
 struct Meter_ {
    Object super;
    Meter_Draw draw;
-   
+
    char* caption;
    int mode;
    int param;
@@ -145,33 +145,14 @@ Meter* Meter_new(struct ProcessList_* pl, int param, MeterClass* type) {
 
 int Meter_humanUnit(char* buffer, unsigned long int value, int size) {
    const char * prefix = "KMGTPEZY";
-   unsigned long int powi = 1;
-   unsigned int written, powj = 1, precision = 2;
-
-   for(;;) {
-      if (value / 1024 < powi)
-         break;
-
-      if (prefix[1] == '\0')
-         break;
-
-      powi *= 1024;
-      ++prefix;
+   unsigned int times = 0;
+   double humanValue = (double) value;
+   while (value / 1024 != 0) {
+     value /= 1024;
+     humanValue /= 1024;
+     times++;
    }
-
-   if (*prefix == 'K')
-      precision = 0;
-
-   for (; precision > 0; precision--) {
-      powj *= 10;
-      if (value / powi < powj)
-         break;
-   }
-
-   written = snprintf(buffer, size, "%.*f%c",
-      precision, (double) value / powi, *prefix);
-
-   return written;
+   return snprintf(buffer, size, "%.*f%ciB", 1, humanValue, prefix[times]);
 }
 
 void Meter_delete(Object* cast) {
@@ -275,7 +256,7 @@ static void BarMeterMode_draw(Meter* this, int x, int y, int w) {
    attrset(CRT_colors[BAR_BORDER]);
    mvaddch(y, x, '[');
    mvaddch(y, x + w, ']');
-   
+
    w--;
    x++;
 
@@ -284,7 +265,7 @@ static void BarMeterMode_draw(Meter* this, int x, int y, int w) {
       return;
    }
    char bar[w + 1];
-   
+
    int blockSizes[10];
 
    xSnprintf(bar, w + 1, "%*.*s", w, w, buffer);
@@ -378,7 +359,7 @@ static void GraphMeterMode_draw(Meter* this, int x, int y, int w) {
    mvaddnstr(y, x, this->caption, captionLen);
    x += captionLen;
    w -= captionLen;
-   
+
    struct timeval now;
    gettimeofday(&now, NULL);
    if (!timercmp(&now, &(data->time), <)) {
@@ -387,10 +368,10 @@ static void GraphMeterMode_draw(Meter* this, int x, int y, int w) {
 
       for (int i = 0; i < nValues - 1; i++)
          data->values[i] = data->values[i+1];
-   
+
       char buffer[nValues];
       Meter_updateValues(this, buffer, nValues - 1);
-   
+
       double value = 0.0;
       int items = Meter_getItems(this);
       for (int i = 0; i < items; i++)
@@ -398,7 +379,7 @@ static void GraphMeterMode_draw(Meter* this, int x, int y, int w) {
       value /= this->total;
       data->values[nValues - 1] = value;
    }
-   
+
    int i = nValues - (w*2) + 2, k = 0;
    if (i < 0) {
       k = -i/2;
@@ -459,7 +440,7 @@ static void LEDMeterMode_draw(Meter* this, int x, int y, int w) {
 
    char buffer[METER_BUFFER_LEN];
    Meter_updateValues(this, buffer, METER_BUFFER_LEN - 1);
-   
+
    RichString_begin(out);
    Meter_displayBuffer(this, buffer, &out);
 

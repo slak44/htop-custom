@@ -216,7 +216,7 @@ void Process_setupColumnWidths() {
 void Process_humanNumber(RichString* str, unsigned long number, bool coloring) {
    char buffer[11];
    int len;
-   
+
    int largeNumberColor = CRT_colors[LARGE_NUMBER];
    int processMegabytesColor = CRT_colors[PROCESS_MEGABYTES];
    int processColor = CRT_colors[PROCESS];
@@ -224,41 +224,36 @@ void Process_humanNumber(RichString* str, unsigned long number, bool coloring) {
       largeNumberColor = CRT_colors[PROCESS];
       processMegabytesColor = CRT_colors[PROCESS];
    }
- 
-   if(number >= (10 * ONE_DECIMAL_M)) {
+
+   if(number >= ONE_DECIMAL_M) {
       #ifdef __LP64__
       if(number >= (100 * ONE_DECIMAL_G)) {
-         len = snprintf(buffer, 10, "%4ldT ", number / ONE_G);
+         len = snprintf(buffer, 12, "%4ldTiB ", number / ONE_G);
          RichString_appendn(str, largeNumberColor, buffer, len);
          return;
       } else if (number >= (1000 * ONE_DECIMAL_M)) {
-         len = snprintf(buffer, 10, "%4.1lfT ", (double)number / ONE_G);
+         len = snprintf(buffer, 12, "%4.1lfTiB ", (double)number / ONE_G);
          RichString_appendn(str, largeNumberColor, buffer, len);
          return;
       }
       #endif
       if(number >= (100 * ONE_DECIMAL_M)) {
-         len = snprintf(buffer, 10, "%4ldG ", number / ONE_M);
+         len = snprintf(buffer, 12, "%4ldGiB ", number / ONE_M);
          RichString_appendn(str, largeNumberColor, buffer, len);
          return;
       }
-      len = snprintf(buffer, 10, "%4.1lfG ", (double)number / ONE_M);
+      len = snprintf(buffer, 12, "%4.1lfGiB ", (double)number / ONE_M);
       RichString_appendn(str, largeNumberColor, buffer, len);
       return;
-   } else if (number >= 100000) {
-      len = snprintf(buffer, 10, "%4ldM ", number / ONE_K);
-      RichString_appendn(str, processMegabytesColor, buffer, len);
-      return;
-   } else if (number >= 1000) {
-      len = snprintf(buffer, 10, "%2ld", number/1000);
-      RichString_appendn(str, processMegabytesColor, buffer, len);
-      number %= 1000;
-      len = snprintf(buffer, 10, "%03lu ", number);
-      RichString_appendn(str, processColor, buffer, len);
+   } else if (number / ONE_K == 0) {
+     len = snprintf(buffer, 12, "        ");
+     RichString_appendn(str, processMegabytesColor, buffer, len);
+     return;
+   } else {
+      len = snprintf(buffer, 12, "%4ldMiB ", number / ONE_K);
+      RichString_appendn(str, number / ONE_K >= 100 ? processMegabytesColor : processColor, buffer, len);
       return;
    }
-   len = snprintf(buffer, 10, "%5lu ", number);
-   RichString_appendn(str, processColor, buffer, len);
 }
 
 void Process_colorNumber(RichString* str, unsigned long long number, bool coloring) {
@@ -299,6 +294,11 @@ void Process_printTime(RichString* str, unsigned long long totalHundredths) {
    int seconds = totalSeconds % 60;
    int hundredths = totalHundredths - (totalSeconds * 100);
    char buffer[11];
+   if (hours == 0 && minutes == 0 && seconds < 10) {
+     xSnprintf(buffer, 10, "         ");
+     RichString_append(str, CRT_colors[DEFAULT_COLOR], buffer);
+     return;
+   }
    if (hours >= 100) {
       xSnprintf(buffer, 10, "%7lluh ", hours);
       RichString_append(str, CRT_colors[LARGE_NUMBER], buffer);
@@ -317,13 +317,14 @@ void Process_printTime(RichString* str, unsigned long long totalHundredths) {
 static inline void Process_writeCommand(Process* this, int attr, int baseattr, RichString* str) {
    int start = RichString_size(str), finish = 0;
    char* comm = this->comm;
+   bool isWinePath = isalpha(comm[0]) && comm[1] == ':';
 
    if (this->settings->highlightBaseName || !this->settings->showProgramPath) {
-      int i, basename = 0;
-      for (i = 0; i < this->basenameOffset; i++) {
-         if (comm[i] == '/') {
+      int i = isWinePath ? 2 : 0, basename = 0;
+      for (; i < this->basenameOffset; i++) {
+         if (comm[i] == '/' || (isWinePath && comm[i] == '\\')) {
             basename = i + 1;
-         } else if (comm[i] == ':') {
+         } else if (comm[i] == ':' || comm[i] == '\0' || comm[i] == ' ') {
             finish = i + 1;
             break;
          }
@@ -340,8 +341,10 @@ static inline void Process_writeCommand(Process* this, int attr, int baseattr, R
 
    RichString_append(str, attr, comm);
 
-   if (this->settings->highlightBaseName)
-      RichString_setAttrn(str, baseattr, start, finish);
+   if (this->settings->highlightBaseName) {
+     RichString_setAttrn(str, baseattr, start, finish);
+     // if (start == 0) fprintf(fopen("/home/slak/Desktop/test", "w"), "%d    %d\n", start, finish);
+   }
 }
 
 void Process_outputRate(RichString* str, char* buffer, int n, double rate, int coloring) {
@@ -353,8 +356,11 @@ void Process_outputRate(RichString* str, char* buffer, int n, double rate, int c
       processMegabytesColor = CRT_colors[PROCESS];
    }
    if (rate == -1) {
-      int len = snprintf(buffer, n, "    no perm ");
+      int len = snprintf(buffer, n, "        N/A ");
       RichString_appendn(str, CRT_colors[PROCESS_SHADOW], buffer, len);
+   } else if (rate < 100) {
+      int len = snprintf(buffer, n, "            ", rate);
+      RichString_appendn(str, processColor, buffer, len);
    } else if (rate < ONE_K) {
       int len = snprintf(buffer, n, "%7.2f B/s ", rate);
       RichString_appendn(str, processColor, buffer, len);
@@ -379,20 +385,24 @@ void Process_writeField(Process* this, RichString* str, ProcessField field) {
 
    switch (field) {
    case PERCENT_CPU: {
-      if (this->percent_cpu > 999.9) {
-         xSnprintf(buffer, n, "%4d ", (unsigned int)this->percent_cpu); 
+      if (this->percent_cpu == 0.0) {
+         xSnprintf(buffer, n, "      ");
+      } else if (this->percent_cpu > 999.9) {
+         xSnprintf(buffer, n, "%4d%% ", (unsigned int)this->percent_cpu);
       } else if (this->percent_cpu > 99.9) {
-         xSnprintf(buffer, n, "%3d. ", (unsigned int)this->percent_cpu); 
+         xSnprintf(buffer, n, "%3d.%% ", (unsigned int)this->percent_cpu);
       } else {
-         xSnprintf(buffer, n, "%4.1f ", this->percent_cpu);
+         xSnprintf(buffer, n, "%4.1f%% ", this->percent_cpu);
       }
       break;
    }
    case PERCENT_MEM: {
-      if (this->percent_mem > 99.9) {
-         xSnprintf(buffer, n, "100. "); 
+      if (this->percent_mem < 0.09) {
+         xSnprintf(buffer, n, "      ");
+      } else if (this->percent_mem > 99.9) {
+         xSnprintf(buffer, n, "100%% ");
       } else {
-         xSnprintf(buffer, n, "%4.1f ", this->percent_mem);
+         xSnprintf(buffer, n, "%4.1f%% ", this->percent_mem);
       }
       break;
    }
@@ -455,7 +465,7 @@ void Process_writeField(Process* this, RichString* str, ProcessField field) {
    case SESSION: xSnprintf(buffer, n, Process_pidFormat, this->session); break;
    case STARTTIME: xSnprintf(buffer, n, "%s", this->starttime_show); break;
    case STATE: {
-      xSnprintf(buffer, n, "%c ", this->state);
+      xSnprintf(buffer, n, "%c ", this->state == 'S' ? ' ' : this->state);
       switch(this->state) {
           case 'R':
               attr = CRT_colors[PROCESS_R_STATE];
@@ -475,13 +485,13 @@ void Process_writeField(Process* this, RichString* str, ProcessField field) {
       if (Process_getuid != (int) this->st_uid)
          attr = CRT_colors[PROCESS_SHADOW];
       if (this->user) {
-         xSnprintf(buffer, n, "%-9s ", this->user);
+         if (strlen(this->user) > 8) {
+           xSnprintf(buffer, n, "%.*s\u2026 ", 7, this->user);
+         } else {
+           xSnprintf(buffer, n, "%8s ", this->user);
+         }
       } else {
-         xSnprintf(buffer, n, "%-9d ", this->st_uid);
-      }
-      if (buffer[9] != '\0') {
-         buffer[9] = ' ';
-         buffer[10] = '\0';
+         xSnprintf(buffer, n, "%8d ", this->st_uid);
       }
       break;
    }
