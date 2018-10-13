@@ -19,7 +19,7 @@ optdepends=('lsof: show files opened by a process'
 validpgpkeys=('8460980B2B79786DE0C7FCC83FD8F43C2BB3C478') # Hisham Muhammad <h@hisham.hm>
 
 build() {
-  ./configure \
+  ../configure \
       --prefix=/usr \
       --sysconfdir=/etc \
       --enable-unicode \
