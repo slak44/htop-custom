@@ -27,7 +27,7 @@ build() {
       --enable-vserver \
       --enable-cgroup
 
-  make
+  make -j8
 }
 
 package() {
