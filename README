@@ -9,6 +9,7 @@ Changes from upstream, in no particular order:
 - Add `%` characters after the percentages for `MEM%` and `CPU%` columns
 - Truncate usernames to 8 chars and append `\u2026` to them if they're longer than that
 - Change spacing in strings to account for some of the above changes
+- Add modified version of [Arch's original `htop` PKGBUILD](https://git.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/htop)
 
 ---------
 Original README:
