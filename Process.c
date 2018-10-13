@@ -214,7 +214,7 @@ void Process_setupColumnWidths() {
 }
 
 void Process_humanNumber(RichString* str, unsigned long number, bool coloring) {
-   char buffer[11];
+   char buffer[12];
    int len;
 
    int largeNumberColor = CRT_colors[LARGE_NUMBER];
@@ -359,7 +359,7 @@ void Process_outputRate(RichString* str, char* buffer, int n, double rate, int c
       int len = snprintf(buffer, n, "        N/A ");
       RichString_appendn(str, CRT_colors[PROCESS_SHADOW], buffer, len);
    } else if (rate < 100) {
-      int len = snprintf(buffer, n, "            ", rate);
+      int len = snprintf(buffer, n, "            ");
       RichString_appendn(str, processColor, buffer, len);
    } else if (rate < ONE_K) {
       int len = snprintf(buffer, n, "%7.2f B/s ", rate);
