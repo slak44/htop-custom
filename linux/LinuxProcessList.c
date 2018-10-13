@@ -387,13 +387,6 @@ static bool LinuxProcessList_statProcessDir(Process* process, const char* dirnam
    if (statok == -1)
       return false;
    process->st_uid = sstat.st_uid;
-
-   struct tm date;
-   time_t ctime = sstat.st_ctime;
-   process->starttime_ctime = ctime;
-   (void) localtime_r((time_t*) &ctime, &date);
-   strftime(process->starttime_show, 7, ((ctime > curTime - 86400) ? "%R " : "%b%d "), &date);
-
    return true;
 }
 
