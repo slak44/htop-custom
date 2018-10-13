@@ -1,3 +1,19 @@
+htop-custom
+===
+
+Changes from upstream, in no particular order:
+- All 1024 byte prefixes (`KB`, `GB`, etc) changed to the correct [SI](https://en.wikipedia.org/wiki/International_System_of_Units) versions (`KiB`, `GiB`, etc)
+- Hide measurements that are close to zero (<0.1% RAM, <0.1% CPU, <1MiB RAM, 0 disk IO, normal process state, <10sec CPU time used)
+- Fixed command basename highlighting for executables ran with `wine` and certain processes like `chromium`
+- Replaced `no perm` with `N/A` for disk IO
+- Add `%` characters after the percentages for `MEM%` and `CPU%` columns
+- Truncate usernames to 8 chars and append `\u2026` to them if they're longer than that
+- Change spacing in strings to account for some of the above changes
+
+---------
+Original README:
+===
+
 [![Build Status](https://travis-ci.org/hishamhm/htop.svg?branch=master)](https://travis-ci.org/hishamhm/htop)
 [![PayPal donate](https://img.shields.io/badge/paypal-donate-green.svg)](http://hisham.hm/htop/index.php?page=donate)
 
